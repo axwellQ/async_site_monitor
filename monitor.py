@@ -81,4 +81,33 @@ def display_history():
             f"{r.timestamp.strftime('%H:%M:%S')} | {status_color}[{r.status_code}] {r.url[:40]}... | {r.response_time:.2f} с.\033[0m")
     print("------------------------------------------")
 
+def main():
+    parser = argparse.ArgumentParser(
+        description="Async Site Monitor: Асинхронная проверка доступности сайтов.",
+    )
+
+    # Определение подкоманд
+    subparsers = parser.add_subparsers(dest='command', required=True)
+
+    # Команда 'check'
+    subparsers.add_parser('check', help='Запустить проверку всех URL из urls.txt')
+
+    # Команда 'history'
+    subparsers.add_parser('history', help='Показать последние результаты проверок из БД')
+
+    args = parser.parse_args()
+
+    if args.command == 'check':
+        urls = get_urls_from_file()
+        if urls:
+            # Запускаем асинхронную функцию через asyncio
+            asyncio.run(run_checks(urls))
+            display_history()  # Показываем свежую историю
+
+    elif args.command == 'history':
+        display_history()
+
+
+if __name__ == '__main__':
+    main()
 
