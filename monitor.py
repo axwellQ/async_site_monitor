@@ -40,4 +40,45 @@ async def check_url(session, url):
 
     return url, status_code, response_time
 
+async def run_checks(urls):
+    """Запускает асинхронные проверки для всех URL."""
+
+    # Создаем асинхронную сессию
+    async with aiohttp.ClientSession() as session:
+        # Создаем список задач (tasks)
+        tasks = [check_url(session, url) for url in urls]
+
+        print(f"\n🚀 Запуск асинхронной проверки {len(urls)} сайтов...")
+
+        # Запускаем все задачи и ждем их выполнения
+        await asyncio.gather(*tasks)
+
+
+def get_urls_from_file(filename="urls.txt"):
+    """Читает список URL из файла."""
+    try:
+        with open(filename, 'r') as f:
+            # Очищаем от лишних пробелов и пустых строк
+            urls = [line.strip() for line in f if line.strip()]
+        return urls
+    except FileNotFoundError:
+        print(f"❌ Файл {filename} не найден. Создайте его и добавьте URL.")
+        return []
+
+
+def display_history():
+    """Выводит историю последних проверок."""
+    results = get_last_checks(limit=15)
+
+    if not results:
+        print("Истории проверок пока нет.")
+        return
+
+    print("\n--- 📜 Последние Результаты Проверок ---")
+    for r in results:
+        status_color = "\033[92m" if r.is_success else "\033[91m"
+        print(
+            f"{r.timestamp.strftime('%H:%M:%S')} | {status_color}[{r.status_code}] {r.url[:40]}... | {r.response_time:.2f} с.\033[0m")
+    print("------------------------------------------")
+
 
